@@ -4,6 +4,9 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.theories.suppliers.TestedOn;
+
+import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
@@ -74,5 +77,20 @@ public class UserJsonTest {
                 .then()
                     .statusCode(404)
                     .body("error", is("Usuário inexistente"));
+    }
+
+    @Test
+    public void deveVerificarListaNaRaiz() {
+        given()
+                .when()
+                    .get("https://restapi.wcaquino.me/users")
+                .then()
+                    .statusCode(200)
+                    .body("$", hasSize(3))
+                    .body("name", hasItems("João da Silva", "Maria Joaquina", "Ana Júlia"))
+                    .body("age[1]", is(25))
+                    .body("filhos.name", hasItem(Arrays.asList("Zezinho", "Luizinho")))
+                    .body("salary", contains(1234.5678f, 2500, null))
+        ;
     }
 }
