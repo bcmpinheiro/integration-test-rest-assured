@@ -49,4 +49,20 @@ public class UserJsonTest {
                     .body("name", containsString("Joaquina"))
                     .body("endereco.rua", is("Rua dos bobos"));
     }
+
+    @Test
+    public void deveVerificarLista() {
+        given()
+                .when()
+                    .get("https://restapi.wcaquino.me/users/3")
+                .then()
+                    .statusCode(200)
+                    .body("name", containsString("Ana"))
+                    .body("filhos", hasSize(2))
+                    .body("filhos[0].name", is("Zezinho"))
+                    .body("filhos[1].name", is("Luizinho"))
+                    .body("filhos[1].name", is("Luizinho"))
+                    .body("filhos.name", hasItem("Zezinho"))
+                    .body("filhos.name", hasItems("Zezinho", "Luizinho"));
+    }
 }
