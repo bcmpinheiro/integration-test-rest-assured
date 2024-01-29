@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.theories.suppliers.TestedOn;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static io.restassured.RestAssured.*;
@@ -117,5 +118,21 @@ public class UserJsonTest {
                     .body("salary.min()", is(1234.5678f))
                     .body("salary.findAll{it != null}.sum()", is(closeTo(3734.5678f, 0.001)))
                     .body("salary.findAll{it != null}.sum()", allOf(greaterThan(3000d), lessThan(5000d)));
+    }
+
+    @Test
+    public void deveUnirJsonPathComJava() {
+        ArrayList<String> names =
+        given()
+                .when()
+                    .get("https://restapi.wcaquino.me/users")
+                .then()
+                    .statusCode(200)
+                    .extract().path("name.findAll{it.startsWith('Maria Joaquina')}")
+
+                ;
+        Assert.assertEquals(1, names.size());
+        Assert.assertTrue(names.get(0).equalsIgnoreCase("mArIa JoAqUiNa"));
+        Assert.assertEquals(names.get(0).toUpperCase(), "maria joaquina".toUpperCase());
     }
 }
