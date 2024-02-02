@@ -3,6 +3,7 @@ import io.restassured.http.Method;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.theories.suppliers.TestedOn;
 
@@ -14,11 +15,20 @@ import static org.hamcrest.Matchers.*;
 
 public class UserJsonTest {
 
+    @BeforeClass
+    public static void setup() {
+        baseURI = "https://restapi.wcaquino.me";
+        //port = 443;
+        //basePath = "/v1";
+    }
+
     @Test
     public void deveVerificarPrimeiroNivel() {
+
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users/1")
+                    .get("/users/1")
                 .then()
                     .statusCode(200)
                     .body("id", is(1))
@@ -28,7 +38,8 @@ public class UserJsonTest {
 
     @Test
     public void deveVerificarPrimeiroNivelOutrasFormas() {
-        Response response = RestAssured.request(Method.GET, "https://restapi.wcaquino.me/users/1");
+
+        Response response = request(Method.GET, "https://restapi.wcaquino.me/users/1");
 
         //path
         Assert.assertEquals(new Integer(1), response.path("id"));
@@ -45,9 +56,11 @@ public class UserJsonTest {
 
     @Test
     public void deveVerificarSegundoNivel() {
+
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users/2")
+                    .get("/users/2")
                 .then()
                     .statusCode(200)
                     .body("name", containsString("Joaquina"))
@@ -56,9 +69,11 @@ public class UserJsonTest {
 
     @Test
     public void deveVerificarLista() {
+
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users/3")
+                    .get("/users/3")
                 .then()
                     .statusCode(200)
                     .body("name", containsString("Ana"))
@@ -72,9 +87,11 @@ public class UserJsonTest {
 
     @Test
     public void deveRetornarErroUsuarioInexistente() {
+
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users/4")
+                    .get("/users/4")
                 .then()
                     .statusCode(404)
                     .body("error", is("Usuário inexistente"));
@@ -82,9 +99,11 @@ public class UserJsonTest {
 
     @Test
     public void deveVerificarListaNaRaiz() {
+
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users")
+                    .get("/users")
                 .then()
                     .statusCode(200)
                     .body("$", hasSize(3))
@@ -96,9 +115,11 @@ public class UserJsonTest {
 
     @Test
     public void deveFazerVerificacoesAvancadas() {
+
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users")
+                    .get("/users")
                 .then()
                     .statusCode(200)
                     .body("$", hasSize(3))
@@ -122,10 +143,12 @@ public class UserJsonTest {
 
     @Test
     public void deveUnirJsonPathComJava() {
+
         ArrayList<String> names =
         given()
+                .log().all()
                 .when()
-                    .get("https://restapi.wcaquino.me/users")
+                    .get("/users")
                 .then()
                     .statusCode(200)
                     .extract().path("name.findAll{it.startsWith('Maria Joaquina')}")
