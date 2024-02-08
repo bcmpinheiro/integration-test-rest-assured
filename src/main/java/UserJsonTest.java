@@ -1,7 +1,12 @@
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.filter.log.LogDetail;
 import io.restassured.http.Method;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,22 +20,34 @@ import static org.hamcrest.Matchers.*;
 
 public class UserJsonTest {
 
+    public static RequestSpecification reqSpec;
+    public static ResponseSpecification resSpec;
+
     @BeforeClass
     public static void setup() {
         baseURI = "https://restapi.wcaquino.me";
         //port = 443;
         //basePath = "/v1";
+
+        RequestSpecBuilder reqBuilder = new RequestSpecBuilder();
+        reqBuilder.log(LogDetail.ALL);
+        reqSpec = reqBuilder.build();
+
+        ResponseSpecBuilder resBuilder = new ResponseSpecBuilder();
+        resBuilder.expectStatusCode(200);
+        resSpec = resBuilder.build();
     }
 
     @Test
     public void deveVerificarPrimeiroNivel() {
 
         given()
-                .log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users/1")
                 .then()
-                    .statusCode(200)
+                    //.statusCode(200)
+                    .spec(resSpec)
                     .body("id", is(1))
                     .body("name", containsString("Silva"))
                     .body("age", greaterThan(18));
@@ -58,11 +75,13 @@ public class UserJsonTest {
     public void deveVerificarSegundoNivel() {
 
         given()
-                .log().all()
+                //.log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users/2")
                 .then()
-                    .statusCode(200)
+                    .spec(resSpec)
+                    //.statusCode(200)
                     .body("name", containsString("Joaquina"))
                     .body("endereco.rua", is("Rua dos bobos"));
     }
@@ -71,11 +90,13 @@ public class UserJsonTest {
     public void deveVerificarLista() {
 
         given()
-                .log().all()
+                //.log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users/3")
                 .then()
-                    .statusCode(200)
+                    //.statusCode(200)
+                    .spec(resSpec)
                     .body("name", containsString("Ana"))
                     .body("filhos", hasSize(2))
                     .body("filhos[0].name", is("Zezinho"))
@@ -89,11 +110,13 @@ public class UserJsonTest {
     public void deveRetornarErroUsuarioInexistente() {
 
         given()
-                .log().all()
+                //.log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users/4")
                 .then()
                     .statusCode(404)
+                    //.spec(resSpec)
                     .body("error", is("Usuário inexistente"));
     }
 
@@ -101,11 +124,13 @@ public class UserJsonTest {
     public void deveVerificarListaNaRaiz() {
 
         given()
-                .log().all()
+                //.log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users")
                 .then()
-                    .statusCode(200)
+                    //.statusCode(200)
+                    .spec(resSpec)
                     .body("$", hasSize(3))
                     .body("name", hasItems("João da Silva", "Maria Joaquina", "Ana Júlia"))
                     .body("age[1]", is(25))
@@ -117,11 +142,13 @@ public class UserJsonTest {
     public void deveFazerVerificacoesAvancadas() {
 
         given()
-                .log().all()
+                //.log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users")
                 .then()
-                    .statusCode(200)
+                    .spec(resSpec)
+                    //.statusCode(200)
                     .body("$", hasSize(3))
                     .body("age.findAll{it <= 25}.size()",is(2))
                     .body("age.findAll{it >20 && it <= 25}.size()",is(1))
@@ -146,11 +173,13 @@ public class UserJsonTest {
 
         ArrayList<String> names =
         given()
-                .log().all()
+                //.log().all()
+                .spec(reqSpec)
                 .when()
                     .get("/users")
                 .then()
-                    .statusCode(200)
+                    //.statusCode(200)
+                    .spec(resSpec)
                     .extract().path("name.findAll{it.startsWith('Maria Joaquina')}")
 
                 ;
