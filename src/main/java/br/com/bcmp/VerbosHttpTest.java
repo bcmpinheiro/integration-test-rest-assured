@@ -1,5 +1,6 @@
 package br.com.bcmp;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -157,6 +158,27 @@ public class VerbosHttpTest {
                     .body("id", is(notNullValue()))
                     .body("name", is("Usuario via objeto"))
                     .body("age", is(35));
+    }
+
+    @Test
+    public void deveDeserializarObjetoAoSalvarOUsuario() {
+        User user = new User("Usuario deserializado", 35);
+
+        User usuarioInserido = given()
+                    .log().all()
+                    .contentType("application/json")
+                    .body(user)
+                .when()
+                    .post("https://restapi.wcaquino.me/users")
+                .then()
+                    .log().all()
+                    .statusCode(201)
+                    .extract().body().as(User.class);
+
+        System.out.println(usuarioInserido);
+        Assert.assertThat(usuarioInserido.getId(), notNullValue());
+        Assert.assertEquals("Usuario deserializado", usuarioInserido.getName());
+        Assert.assertThat(usuarioInserido.getAge(), is(35));
     }
 
 }
