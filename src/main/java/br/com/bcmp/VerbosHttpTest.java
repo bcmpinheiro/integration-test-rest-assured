@@ -1,6 +1,10 @@
 package br.com.bcmp;
 
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
@@ -106,14 +110,34 @@ public class VerbosHttpTest {
     @Test
     public void naoDeveRemoverUsuarioInexistente() {
         given()
-                .log().all()
-                .pathParam("entidade", "users")
-                .pathParam("userId", "1000")
+                    .log().all()
+                    .pathParam("entidade", "users")
+                    .pathParam("userId", "1000")
                 .when()
-                .delete("https://restapi.wcaquino.me/{entidade}/{userId}")
+                    .delete("https://restapi.wcaquino.me/{entidade}/{userId}")
                 .then()
-                .log().all()
-                .statusCode(400)
-                .body("error", is("Registro inexistente"));
+                    .log().all()
+                    .statusCode(400)
+                    .body("error", is("Registro inexistente"));
+    }
+
+    @Test
+    public void deveSalvarUsuarioUsandoMap() {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("name", "Usuario via map");
+        params.put("age", 25);
+
+        given()
+                    .log().all()
+                    .contentType("application/json")
+                    .body(params)
+                .when()
+                    .post("https://restapi.wcaquino.me/users")
+                .then()
+                    .log().all()
+                    .statusCode(201)
+                    .body("id", is(notNullValue()))
+                    .body("name", is("Usuario via map"))
+                    .body("age", is(25));
     }
 }
