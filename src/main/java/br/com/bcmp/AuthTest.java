@@ -1,6 +1,7 @@
 package br.com.bcmp;
 
 import io.restassured.http.ContentType;
+import io.restassured.path.xml.XmlPath;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -116,4 +117,38 @@ public class AuthTest {
                 .body("nome", hasItem("teste"));
     }
 
+    @Test
+    public void deveAcessarAplicacaoWeb() {
+        //login
+        String cookie = given()
+                    .log().all()
+                    .formParam("email", "barbara@barbara")
+                    .formParam("senha", "123456")
+                    .contentType(ContentType.URLENC.withCharset("UTF-8"))
+                .when()
+                    .post("https://seubarriga.wcaquino.me/logar")
+                .then()
+                    .log().all()
+                    .statusCode(200)
+                    .extract().header("set-cookie");
+
+                cookie = cookie.split("=")[1].split(";")[0];
+                System.out.println(cookie);
+
+        //obter conta
+        String body = given()
+                    .log().all()
+                    .cookie("connect.sid", cookie)
+                .when()
+                    .get("https://seubarriga.wcaquino.me/contas")
+                .then()
+                    .log().all()
+                    .statusCode(200)
+                .body("html.body.table.tbody.tr[0].td[0]", is("teste"))
+                .extract().body().asString();
+
+        System.out.println("-------------------");
+        XmlPath xmlPath = new XmlPath(XmlPath.CompatibilityMode.HTML, body);
+        System.out.println(xmlPath.getString("html.body.table.tbody.tr[0].td[0]"));
+    }
 }
