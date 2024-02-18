@@ -1,38 +1,22 @@
 package br.com.barrigarest.tests;
 
+import br.com.barrigarest.core.BaseTest;
 import io.restassured.http.ContentType;
 import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 import static io.restassured.RestAssured.given;
 
-public class BarrigaTest {
+public class BarrigaTest extends BaseTest {
 
     @Test
     public void naoDeveAcessarApiSemToken() {
-        Map<String,String> login = new HashMap<String, String>();
-        login.put("email", "barbara@barbara");
-        login.put("senha", "123456");
-
-        String token = given()
-                .log().all()
-                .body(login)
-                .contentType(ContentType.JSON)
-                .when()
-                .post("https://barrigarest.wcaquino.me/signin")
-                .then()
-                .log().all()
-                .statusCode(200)
-                .extract().path("token");
-
         given()
-                .log().all()
-                .header("Authorization", "JWT ")
                 .when()
-                .get("https://barrigarest.wcaquino.me/contas")
+                    .get("/contas")
                 .then()
-                .log().all()
-                .statusCode(401);
+                    .statusCode(401);
     }
+
 
 }
