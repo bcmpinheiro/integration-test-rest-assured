@@ -3,8 +3,12 @@ package br.com.bcmp;
 import io.restassured.http.ContentType;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 public class AuthTest {
@@ -83,4 +87,33 @@ public class AuthTest {
                     .statusCode(200)
                     .body("status", is ("logado"));
     }
+
+    @Test
+    public void deveFazerAutenticacaoComToken() {
+        Map<String,String> login = new HashMap<String, String>();
+        login.put("email", "barbara@barbara");
+        login.put("senha", "123456");
+
+        String token = given()
+                    .log().all()
+                    .body(login)
+                    .contentType(ContentType.JSON)
+                .when()
+                    .post("https://barrigarest.wcaquino.me/signin")
+                .then()
+                    .log().all()
+                    .statusCode(200)
+                    .extract().path("token");
+
+        given()
+                    .log().all()
+                .header("Authorization", "JWT " + token)
+                .when()
+                    .get("https://barrigarest.wcaquino.me/contas")
+                .then()
+                    .log().all()
+                    .statusCode(200)
+                .body("nome", hasItem("teste"));
+    }
+
 }
