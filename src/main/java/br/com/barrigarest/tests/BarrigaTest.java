@@ -132,6 +132,17 @@ public class BarrigaTest extends BaseTest {
                     .body("constraint", is("transacoes_conta_id_foreign"));
     }
 
+    @Test
+    public void deveCalcularSaldoContas() {
+        given()
+                    .header("Authorization", "JWT " + TOKEN)
+                .when()
+                    .get("/saldo")
+                .then()
+                    .statusCode(200)
+                    .body("find{it.conta_id == 2041183}.saldo", is("300.00"));
+    }
+
 
 
     private Movimentacao getMovimentacaoValida() {
