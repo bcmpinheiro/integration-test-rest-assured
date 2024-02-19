@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 import static io.restassured.RestAssured.given;
+import static jdk.dynalink.linker.support.Guards.isNotNull;
 import static org.hamcrest.Matchers.*;
 
 public class BarrigaTest extends BaseTest {
@@ -91,4 +92,27 @@ public class BarrigaTest extends BaseTest {
                 .then()
                     .statusCode(201);
     }
+
+    @Test
+    public void deveValidarCamposObrigatoriosDaMovimentacao() {
+
+        given()
+                    .header("Authorization", "JWT " + TOKEN)
+                    .body("{}")
+                .when()
+                    .post("/transacoes")
+                .then()
+                    .statusCode(400)
+                    .body("$", hasSize(8))
+                    .body("msg", hasItems(
+                            "Data da Movimentação é obrigatório",
+                            "Data do pagamento é obrigatório",
+                            "Descrição é obrigatório",
+                            "Interessado é obrigatório",
+                            "Valor é obrigatório",
+                            "Valor deve ser um número",
+                            "Conta é obrigatório",
+                            "Situação é obrigatório"));
+    }
+
 }
