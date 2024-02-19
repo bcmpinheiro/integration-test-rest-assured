@@ -73,16 +73,7 @@ public class BarrigaTest extends BaseTest {
 
     @Test
     public void deveInserirUmaMovimentacaoComSucesso() {
-        Movimentacao movimentacao = new Movimentacao();
-        movimentacao.setConta_id(2041183);
-        //movimentacao.setUsuario_id();
-        movimentacao.setDescricao("descricao da movimentacao");
-        movimentacao.setEnvolvido("envolvido na movimentacao");
-        movimentacao.setTipo("REC");
-        movimentacao.setData_transacao("01/02/2024");
-        movimentacao.setData_pagamento("05/02/2024");
-        movimentacao.setValor(100f);
-        movimentacao.setStatus(true);
+        Movimentacao movimentacao = getMovimentacaoValida();
 
         given()
                     .header("Authorization", "JWT " + TOKEN)
@@ -95,7 +86,6 @@ public class BarrigaTest extends BaseTest {
 
     @Test
     public void deveValidarCamposObrigatoriosDaMovimentacao() {
-
         given()
                     .header("Authorization", "JWT " + TOKEN)
                     .body("{}")
@@ -113,6 +103,37 @@ public class BarrigaTest extends BaseTest {
                             "Valor deve ser um número",
                             "Conta é obrigatório",
                             "Situação é obrigatório"));
+    }
+
+    @Test
+    public void naoDeveInserirMovimentacaoFutura() {
+        Movimentacao movimentacao = getMovimentacaoValida();
+        movimentacao.setData_transacao("20/02/2024");
+
+        given()
+                    .header("Authorization", "JWT " + TOKEN)
+                    .body(movimentacao)
+                .when()
+                    .post("/transacoes")
+                .then()
+                    .log().all()
+                    .statusCode(400)
+                    .body("$", hasSize(1))
+                    .body("msg", hasItems("Data da Movimentação deve ser menor ou igual à data atual"));
+    }
+
+    private Movimentacao getMovimentacaoValida() {
+        Movimentacao movimentacao = new Movimentacao();
+        movimentacao.setConta_id(2041183);
+        //movimentacao.setUsuario_id();
+        movimentacao.setDescricao("descricao da movimentacao");
+        movimentacao.setEnvolvido("envolvido na movimentacao");
+        movimentacao.setTipo("REC");
+        movimentacao.setData_transacao("01/02/2024");
+        movimentacao.setData_pagamento("05/02/2024");
+        movimentacao.setValor(100f);
+        movimentacao.setStatus(true);
+        return movimentacao;
     }
 
 }
