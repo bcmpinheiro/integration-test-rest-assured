@@ -54,9 +54,20 @@ public class BarrigaTest extends BaseTest {
                 .when()
                     .put("/contas/2041183")
                 .then()
-                    .log().all()
                     .statusCode(200)
                     .body("nome", is("conta teste n1"));
+    }
+
+    @Test
+    public void naoDeveInserirContaComMesmoNome() {
+        given()
+                    .header("Authorization", "JWT " + TOKEN)
+                    .body("{\"nome\": \"conta teste n2\"}")
+                .when()
+                    .post("/contas")
+                .then()
+                    .statusCode(400)
+                    .body("error", is("Já existe uma conta com esse nome!"));
     }
 
 
