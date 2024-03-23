@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class DateUtils {
+public class DataUtils {
 
     public static String getDataDiferencaDeDias(Integer qtdDias) {
         Calendar calendar = Calendar.getInstance();

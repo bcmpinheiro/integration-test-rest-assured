@@ -1,19 +1,17 @@
 package br.com.barrigarest.tests;
 
 import br.com.barrigarest.core.BaseTest;
-import br.com.barrigarest.tests.utils.DateUtils;
+import br.com.barrigarest.tests.utils.DataUtils;
 import io.restassured.RestAssured;
 import io.restassured.specification.FilterableRequestSpecification;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runner.manipulation.Filterable;
 import org.junit.runners.MethodSorters;
 
 import java.util.HashMap;
 import java.util.Map;
 import static io.restassured.RestAssured.given;
-import static jdk.dynalink.linker.support.Guards.isNotNull;
 import static org.hamcrest.Matchers.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -119,7 +117,7 @@ public class BarrigaTest extends BaseTest {
     @Test
     public void t07_naoDeveInserirMovimentacaoFutura() {
         Movimentacao movimentacao = getMovimentacaoValida();
-        movimentacao.setData_transacao(DateUtils.getDataDiferencaDeDias(2));
+        movimentacao.setData_transacao(DataUtils.getDataDiferencaDeDias(2));
 
         given()
                     .body(movimentacao)
@@ -181,8 +179,8 @@ public class BarrigaTest extends BaseTest {
         movimentacao.setDescricao("descricao da movimentacao");
         movimentacao.setEnvolvido("envolvido na movimentacao");
         movimentacao.setTipo("REC");
-        movimentacao.setData_transacao(DateUtils.getDataDiferencaDeDias(-1));
-        movimentacao.setData_pagamento(DateUtils.getDataDiferencaDeDias(5));
+        movimentacao.setData_transacao(DataUtils.getDataDiferencaDeDias(-1));
+        movimentacao.setData_pagamento(DataUtils.getDataDiferencaDeDias(5));
         movimentacao.setValor(100f);
         movimentacao.setStatus(true);
         return movimentacao;
