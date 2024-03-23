@@ -1,17 +1,28 @@
 package br.com.barrigarest.tests;
 
 import br.com.barrigarest.core.BaseTest;
+import br.com.barrigarest.tests.utils.DateUtils;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.util.HashMap;
 import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static jdk.dynalink.linker.support.Guards.isNotNull;
 import static org.hamcrest.Matchers.*;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BarrigaTest extends BaseTest {
 
     private String TOKEN;
+
+    private static String CONTA_NAME = "Conta " + System.nanoTime();
+
+    private static Integer CONTA_ID;
+    private static Integer MOVE_ID;
+
     @Before
     public void login() {
         Map<String,String> login = new HashMap<>();
@@ -28,7 +39,7 @@ public class BarrigaTest extends BaseTest {
     }
 
     @Test
-    public void naoDeveAcessarApiSemToken() {
+    public void t01_naoDeveAcessarApiSemToken() {
         given()
                 .when()
                     .get("/contas")
@@ -37,33 +48,35 @@ public class BarrigaTest extends BaseTest {
     }
 
     @Test
-    public void deveIncluirContaComSucesso() {
-        given()
+    public void t02_deveIncluirContaComSucesso() {
+        CONTA_ID = given()
                     .header("Authorization", "JWT " + TOKEN)
-                    .body("{\"nome\": \"teste2\"}")
+                    .body("{\"nome\": \""+CONTA_NAME+"\"}")
                 .when()
                     .post("/contas")
                 .then()
-                    .statusCode(201);
+                    .statusCode(201)
+                    .extract().path("id");
     }
 
     @Test
-    public void deveAlterarContaComSucesso() {
+    public void t03_deveAlterarContaComSucesso() {
         given()
                     .header("Authorization", "JWT " + TOKEN)
-                    .body("{\"nome\": \"conta teste n1\"}")
+                    .body("{ \"nome\": \""+CONTA_NAME+" alterada\" }")
+                    .pathParam("id", CONTA_ID)
                 .when()
-                    .put("/contas/2041183")
+                    .put("/contas/{id}")
                 .then()
                     .statusCode(200)
-                    .body("nome", is("conta teste n1"));
+                    .body("nome", is(CONTA_NAME+" alterada"));
     }
 
     @Test
-    public void naoDeveInserirContaComMesmoNome() {
+    public void t04_naoDeveInserirContaComMesmoNome() {
         given()
                     .header("Authorization", "JWT " + TOKEN)
-                    .body("{\"nome\": \"conta teste n2\"}")
+                    .body("{ \"nome\": \""+CONTA_NAME+" alterada\" }")
                 .when()
                     .post("/contas")
                 .then()
@@ -72,20 +85,21 @@ public class BarrigaTest extends BaseTest {
     }
 
     @Test
-    public void deveInserirUmaMovimentacaoComSucesso() {
+    public void t05_deveInserirUmaMovimentacaoComSucesso() {
         Movimentacao movimentacao = getMovimentacaoValida();
 
-        given()
+        MOVE_ID = given()
                     .header("Authorization", "JWT " + TOKEN)
                     .body(movimentacao)
                 .when()
                     .post("/transacoes")
                 .then()
-                    .statusCode(201);
+                    .statusCode(201)
+                    .extract().path("id");
     }
 
     @Test
-    public void deveValidarCamposObrigatoriosDaMovimentacao() {
+    public void t06_deveValidarCamposObrigatoriosDaMovimentacao() {
         given()
                     .header("Authorization", "JWT " + TOKEN)
                     .body("{}")
@@ -106,9 +120,9 @@ public class BarrigaTest extends BaseTest {
     }
 
     @Test
-    public void naoDeveInserirMovimentacaoFutura() {
+    public void t07_naoDeveInserirMovimentacaoFutura() {
         Movimentacao movimentacao = getMovimentacaoValida();
-        movimentacao.setData_transacao("20/02/2024");
+        movimentacao.setData_transacao(DateUtils.getDataDiferencaDeDias(2));
 
         given()
                     .header("Authorization", "JWT " + TOKEN)
@@ -122,50 +136,50 @@ public class BarrigaTest extends BaseTest {
     }
 
     @Test
-    public void naoDeveRemoverContaQuePossuiMovimentacao() {
+    public void t08_naoDeveRemoverContaQuePossuiMovimentacao() {
         given()
                     .header("Authorization", "JWT " + TOKEN)
+                    .pathParam("id", CONTA_ID)
                 .when()
-                    .delete("/contas/2041183")
+                    .delete("/contas/{id}")
                 .then()
                     .statusCode(500)
                     .body("constraint", is("transacoes_conta_id_foreign"));
     }
 
     @Test
-    public void deveCalcularSaldoContas() {
+    public void t09_deveCalcularSaldoContas() {
         given()
                     .header("Authorization", "JWT " + TOKEN)
                 .when()
                     .get("/saldo")
                 .then()
                     .statusCode(200)
-                    .body("find{it.conta_id == 2041183}.saldo", is("300.00"));
+                    .body("find{it.conta_id == "+CONTA_ID+"}.saldo", is("100.00"));
     }
 
     @Test
-    public void deveRemoverMovimentacao() {
+    public void t10_deveRemoverMovimentacao() {
         given()
                     .header("Authorization", "JWT " + TOKEN)
+                    .pathParam("id", MOVE_ID)
                 .when()
-                    .delete("/transacoes/1913355")
+                    .delete("/transacoes/{id}")
                 .then()
                     .statusCode(204);
     }
 
-
     private Movimentacao getMovimentacaoValida() {
         Movimentacao movimentacao = new Movimentacao();
-        movimentacao.setConta_id(2041183);
+        movimentacao.setConta_id(CONTA_ID);
         //movimentacao.setUsuario_id();
         movimentacao.setDescricao("descricao da movimentacao");
         movimentacao.setEnvolvido("envolvido na movimentacao");
         movimentacao.setTipo("REC");
-        movimentacao.setData_transacao("01/02/2024");
-        movimentacao.setData_pagamento("05/02/2024");
+        movimentacao.setData_transacao(DateUtils.getDataDiferencaDeDias(-1));
+        movimentacao.setData_pagamento(DateUtils.getDataDiferencaDeDias(5));
         movimentacao.setValor(100f);
         movimentacao.setStatus(true);
         return movimentacao;
     }
-
 }
