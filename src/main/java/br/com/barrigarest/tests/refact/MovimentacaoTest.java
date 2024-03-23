@@ -2,38 +2,14 @@ package br.com.barrigarest.tests.refact;
 
 import br.com.barrigarest.core.BaseTest;
 import br.com.barrigarest.tests.Movimentacao;
+import br.com.barrigarest.tests.utils.BarrigaUtils;
 import br.com.barrigarest.tests.utils.DataUtils;
-import io.restassured.RestAssured;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class MovimentacaoTest extends BaseTest {
-
-    @BeforeClass
-    public static void login() {
-        Map<String,String> login = new HashMap<>();
-        login.put("email", "barbara@barbara");
-        login.put("senha", "123456");
-
-        String TOKEN = given()
-                .body(login)
-                .when()
-                .post("/signin")
-                .then()
-                .statusCode(200)
-                .extract().path("token");
-
-        RestAssured.requestSpecification.header("Authorization", "JWT " + TOKEN);
-
-        get("/reset").then().statusCode(200);
-    }
 
     @Test
     public void deveInserirUmaMovimentacaoComSucesso() {
@@ -84,7 +60,7 @@ public class MovimentacaoTest extends BaseTest {
 
     @Test
     public void naoDeveRemoverContaQuePossuiMovimentacao() {
-        Integer CONTA_ID = getIdContaPeloNome("Conta com movimentacao");
+        Integer CONTA_ID = BarrigaUtils.getIdContaPeloNome("Conta com movimentacao");
 
         given()
                 .pathParam("id", CONTA_ID)
@@ -97,7 +73,7 @@ public class MovimentacaoTest extends BaseTest {
 
     @Test
     public void deveRemoverMovimentacao() {
-        Integer MOVE_ID = getIdMovimentacaoPelaDescricao("Movimentacao para exclusao");
+        Integer MOVE_ID = BarrigaUtils.getIdMovimentacaoPelaDescricao("Movimentacao para exclusao");
 
         given()
                 .pathParam("id", MOVE_ID)
@@ -107,17 +83,10 @@ public class MovimentacaoTest extends BaseTest {
                 .statusCode(204);
     }
 
-    public Integer getIdContaPeloNome(String nome) {
-        return RestAssured.get("/contas?nome="+nome).then().extract().path("id[0]");
-    }
-
-    public Integer getIdMovimentacaoPelaDescricao(String desc) {
-        return RestAssured.get("/transacoes?descricao="+desc).then().extract().path("id[0]");
-    }
 
     private Movimentacao getMovimentacaoValida() {
         Movimentacao movimentacao = new Movimentacao();
-        movimentacao.setConta_id(getIdContaPeloNome("Conta para movimentacoes"));
+        movimentacao.setConta_id(BarrigaUtils.getIdContaPeloNome("Conta para movimentacoes"));
         //movimentacao.setUsuario_id();
         movimentacao.setDescricao("descricao da movimentacao");
         movimentacao.setEnvolvido("envolvido na movimentacao");
@@ -128,5 +97,4 @@ public class MovimentacaoTest extends BaseTest {
         movimentacao.setStatus(true);
         return movimentacao;
     }
-
 }
